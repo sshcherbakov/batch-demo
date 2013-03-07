@@ -25,7 +25,7 @@ import java.util.concurrent.TimeUnit;
 
 @ContextConfiguration(locations={"/META-INF/spring/launch-context.xml"})
 @RunWith(SpringJUnit4ClassRunner.class)
-@ActiveProfiles("multithreaded")
+@ActiveProfiles("simplePartitioning")
 public class JobSyncConfigurationTests {
 	
 	@Autowired
