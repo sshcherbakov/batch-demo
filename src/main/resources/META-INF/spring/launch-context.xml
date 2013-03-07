@@ -38,8 +38,13 @@
 		<import resource="classpath:/META-INF/spring/jobs/multithreaded.xml" />
 	</beans>
 
-	<beans profile="partitioned">
-		<import resource="classpath:/META-INF/spring/jobs/partitioned.xml" />
+    <beans profile="simplePartitioning">
+        <import resource="classpath:/META-INF/spring/jobs/partition_executor.xml" />
+    </beans>
+
+
+    <beans profile="remotePartitioning">
+		<import resource="classpath:/META-INF/spring/jobs/partition_remote.xml" />
 	</beans>
 
 	<beans profile="server">
