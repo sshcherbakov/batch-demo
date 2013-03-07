@@ -17,7 +17,7 @@
     <batch:job id="job1">
         <batch:step id="step">
             <batch:partition step="step1" partitioner="partitioner">
-                <batch:handler grid-size="9" task-executor="taskExecutor"/>
+                <batch:handler grid-size="5" task-executor="taskExecutor"/>
             </batch:partition>
         </batch:step>
         <batch:listeners>
@@ -38,16 +38,16 @@
         </batch:tasklet>
     </batch:step>
 
-    <bean id="delayingProcessor" class="batch.demo.job.DelayingProcessor" scope="step"/>
+    <bean id="delayingProcessor" class="batch.demo.job.DelayingProcessor"/>
 
-    <bean id="partitioner" class="org.springframework.batch.core.partition.support.SimplePartitioner" />
+    <bean id="partitioner" class="batch.demo.job.FlatFilePartitioner" scope="step"
+          p:resource="#{jobParameters['batch.demo.input.file']}" />
 
-    <task:executor id="taskExecutor" pool-size="9"/>
+    <task:executor id="taskExecutor" pool-size="5"/>
 
     <bean id="drawing" class="batch.demo.domain.Drawing" scope="prototype"/>
 
-    <bean id="lottoReader" class="org.springframework.batch.item.file.FlatFileItemReader">
-        <property name="linesToSkip" value="1"/>
+    <bean id="lottoReader" class="batch.demo.job.MultiThreadedFlatFileItemReader" scope="step">
         <property name="lineMapper">
             <bean class="org.springframework.batch.item.file.mapping.DefaultLineMapper">
                 <property name="lineTokenizer">
@@ -75,6 +75,8 @@
             </bean>
         </property>
         <property name="resource" value="#{jobParameters['batch.demo.input.file']}"/>
+        <property name="startAt" value="#{stepExecutionContext['startAt']}"/>
+        <property name="itemsCount" value="#{stepExecutionContext['itemsCount']}"/>
     </bean>
 
     <bean id="lottoWriter" class="org.springframework.batch.item.jms.JmsItemWriter" p:jmsTemplate-ref="jmsTemplate"/>
