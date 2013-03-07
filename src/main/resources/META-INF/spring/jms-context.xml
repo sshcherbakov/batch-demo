@@ -2,16 +2,18 @@
 <beans xmlns="http://www.springframework.org/schema/beans" xmlns:aop="http://www.springframework.org/schema/aop"
        xmlns:p="http://www.springframework.org/schema/p" xmlns:tx="http://www.springframework.org/schema/tx"
        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-       xsi:schemaLocation="
-		http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-2.0.xsd
+       xmlns:int-jms="http://www.springframework.org/schema/integration/jms"
+       xmlns:int="http://www.springframework.org/schema/integration"
+       xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-2.0.xsd
 		http://www.springframework.org/schema/aop http://www.springframework.org/schema/aop/spring-aop-2.0.xsd
-		http://www.springframework.org/schema/tx http://www.springframework.org/schema/tx/spring-tx-2.0.xsd">
+		http://www.springframework.org/schema/tx http://www.springframework.org/schema/tx/spring-tx-2.0.xsd http://www.springframework.org/schema/integration/jms http://www.springframework.org/schema/integration/jms/spring-integration-jms.xsd">
 
     <bean id="jmsTemplate" class="org.springframework.jms.core.JmsTemplate">
         <property name="connectionFactory" ref="connectionFactory" />
         <property name="receiveTimeout" value="100" />
         <!-- This is important... -->
         <property name="sessionTransacted" value="true" />
+        <property name="defaultDestinationName" value="output" />
     </bean>
 
     <bean id="connectionFactory" class="org.apache.activemq.ActiveMQConnectionFactory" depends-on="brokerService">
@@ -37,5 +39,10 @@
             </bean-->
         </property>
     </bean>
+
+    <int-jms:message-driven-channel-adapter id="jmsIn" destination-name="output" channel="outputChannel"/>
+    <int:channel id="outputChannel">
+        <int:queue />
+    </int:channel>
 
 </beans>
