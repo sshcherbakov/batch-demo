@@ -1,0 +1,91 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xmlns:context="http://www.springframework.org/schema/context"
+	xmlns:task="http://www.springframework.org/schema/task"
+	xmlns:int="http://www.springframework.org/schema/integration"
+	xmlns:int-jms="http://www.springframework.org/schema/integration/jms"
+	xmlns:jms="http://www.springframework.org/schema/jms"
+	xsi:schemaLocation="http://www.springframework.org/schema/jms http://www.springframework.org/schema/jms/spring-jms-3.1.xsd
+		http://www.springframework.org/schema/integration http://www.springframework.org/schema/integration/spring-integration-2.2.xsd
+		http://www.springframework.org/schema/integration/jms http://www.springframework.org/schema/integration/jms/spring-integration-jms-2.2.xsd
+		http://www.springframework.org/schema/task http://www.springframework.org/schema/task/spring-task-3.2.xsd
+		http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-3.2.xsd
+		http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context-3.2.xsd">
+
+	<context:property-placeholder location="classpath:mq.properties" />
+	
+	<bean id="jobLauncher" class="org.springframework.batch.core.launch.support.SimpleJobLauncher">
+		<property name="jobRepository" ref="jobRepository" />
+		<property name="taskExecutor" ref="jobTaskExecutor" />
+	</bean>
+	<task:executor id="jobTaskExecutor" pool-size="5" />
+	
+	<bean id="jobOperator" class="org.springframework.batch.core.launch.support.SimpleJobOperator" >
+		<property name="jobExplorer">
+			<bean class="org.springframework.batch.core.explore.support.JobExplorerFactoryBean">
+				<property name="dataSource" ref="dataSource" />
+			</bean>
+		</property>
+		<property name="jobRepository" ref="jobRepository" />
+	    <property name="jobRegistry" ref="jobRegistry" />
+    	<property name="jobLauncher" ref="jobLauncher" />
+	</bean>
+
+	<bean id="exporter" class="org.springframework.jmx.export.MBeanExporter">
+		<property name="beans">
+			<map>
+				<entry key="Batch:name=jobOperator" value-ref="jobOperator" />
+			</map>
+		</property>
+	</bean>
+	
+	<bean id="mqConnectionFactory" class="com.ibm.mq.jms.MQQueueConnectionFactory">
+		<property name="hostName" value="${ibm.mq.host.name}" />
+		<property name="port" value="${ibm.mq.port}" />
+		<property name="queueManager" value="${ibm.mq.queue.manager}" />
+		<property name="transportType" value="1" />
+	</bean>
+	
+	<bean id="userConnectionFactory" class="org.springframework.jms.connection.UserCredentialsConnectionFactoryAdapter">
+		<property name="targetConnectionFactory" ref="mqConnectionFactory" />
+		<property name="username" value="mqm" />
+		<property name="password" value="mqm" />
+	</bean>
+	
+	<bean id="jmsConnectionFactory" class="org.springframework.jms.connection.SingleConnectionFactory">
+		<property name="targetConnectionFactory" ref="userConnectionFactory" />
+	</bean>
+	
+	<bean id="orangeQueue" class="com.ibm.mq.jms.MQQueue"> 
+        <property name="baseQueueManagerName" value="${ibm.mq.queue.manager}" /> 
+        <property name="baseQueueName" value="${ibm.mq.orange.queue}" />
+    </bean> 
+    
+	<int-jms:message-driven-channel-adapter 
+		channel="orangeRequests"
+		connection-factory="jmsConnectionFactory"
+		destination="orangeQueue"
+		pub-sub-domain="false" />
+		
+	<int:channel id="orangeRequests" />
+	<int:service-activator input-channel="orangeRequests" expression="@jobOperator.start('job1', payload)" />
+
+
+	<bean id="jobreqQueue" class="com.ibm.mq.jms.MQQueue"> 
+        <property name="baseQueueManagerName" value="${ibm.mq.queue.manager}" /> 
+        <property name="baseQueueName" value="${ibm.mq.jobreq.queue}" />
+    </bean> 
+
+	<int-jms:message-driven-channel-adapter 
+		channel="jobRequests"
+		connection-factory="jmsConnectionFactory"
+		destination="jobreqQueue"
+		pub-sub-domain="false" />
+		
+	<int:channel id="jobRequests" />
+	<int:service-activator input-channel="jobRequests" ref="jobProcessor" method="launch" />
+	
+	<bean id="jobProcessor" class="batch.demo.service.XmlJobProcessor" />
+
+</beans>
