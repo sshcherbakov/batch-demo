@@ -13,7 +13,7 @@
  	
 	<batch:job id="multithreadedJob">
 		<batch:step id="step1">			
-			<batch:tasklet transaction-manager="transactionManager" start-limit="100">
+			<batch:tasklet transaction-manager="transactionManager" start-limit="100" task-executor="taskExecutor" >
 				<batch:chunk reader="lottoReader" writer="lottoWriter" processor="delayingProcessor" 
 					commit-interval="10" skip-limit="20">
 					<batch:skippable-exception-classes>
@@ -22,11 +22,16 @@
 				</batch:chunk>
 			</batch:tasklet>
 		</batch:step>
+		<batch:listeners>
+			<batch:listener>
+				<bean class="batch.demo.job.ExecutionTimeMeasurer" />
+			</batch:listener>
+		</batch:listeners>
 	</batch:job>
 	
-	<bean id="delayingProcessor" class="batch.demo.job.DelayingProcessor" scope="step">
-		<!--<property name="delay" value="${batch.demo.processor.delay}" />-->
-	</bean>
+	<bean id="delayingProcessor" class="batch.demo.job.DelayingProcessor" scope="step" />
+	
+ 	<task:executor id="taskExecutor" pool-size="5" />
 	
 	<bean id="drawing" class="batch.demo.domain.Drawing" scope="prototype" /> 
 	
