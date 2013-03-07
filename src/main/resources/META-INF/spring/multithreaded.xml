@@ -25,7 +25,7 @@
 	</batch:job>
 	
 	<bean id="delayingProcessor" class="batch.demo.job.DelayingProcessor" scope="step">
-		<property name="delay" value="${batch.demo.processor.delay}" />
+		<!--<property name="delay" value="${batch.demo.processor.delay}" />-->
 	</bean>
 	
 	<bean id="drawing" class="batch.demo.domain.Drawing" scope="prototype" /> 

@@ -21,6 +21,7 @@
 
 	<jdbc:initialize-database data-source="dataSource" enabled="false">
 		<jdbc:script location="${batch.schema.script}" />
+		<jdbc:script location="classpath:/org/springframework/batch/core/schema-h2.sql" />
 	</jdbc:initialize-database>
 
 	<batch:job-repository id="jobRepository"
@@ -33,7 +34,7 @@
 	    <property name="jobRegistry" ref="jobRegistry"/>
 	</bean>
 
-	<beans profile="multithread">	
+	<beans profile="multithreaded">	
 		<import resource="classpath:/META-INF/spring/multithreaded.xml" />
 	</beans>
 
