@@ -4,24 +4,18 @@
 	xmlns:batch="http://www.springframework.org/schema/batch"
 	xmlns:context="http://www.springframework.org/schema/context"
 	xmlns:jdbc="http://www.springframework.org/schema/jdbc"
-	xmlns:task="http://www.springframework.org/schema/task"
-	xmlns:int="http://www.springframework.org/schema/integration"
-	xmlns:int-jms="http://www.springframework.org/schema/integration/jms"
 	xsi:schemaLocation="http://www.springframework.org/schema/jdbc http://www.springframework.org/schema/jdbc/spring-jdbc-3.2.xsd
-		http://www.springframework.org/schema/integration http://www.springframework.org/schema/integration/spring-integration-2.2.xsd
-		http://www.springframework.org/schema/integration/jms http://www.springframework.org/schema/integration/jms/spring-integration-jms-2.2.xsd
-		http://www.springframework.org/schema/task http://www.springframework.org/schema/task/spring-task-3.2.xsd
 		http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-3.2.xsd
 		http://www.springframework.org/schema/batch http://www.springframework.org/schema/batch/spring-batch-2.1.xsd
 		http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context-3.2.xsd">
 
-	<context:property-placeholder location="classpath:batch.properties,classpath:mq.properties" />
+	<context:property-placeholder location="classpath:batch.properties" />
 
 	<context:component-scan base-package="batch.demo.job" />
 
-	<jdbc:initialize-database data-source="dataSource" enabled="false">
-		<jdbc:script location="${batch.schema.script}" />
-		<jdbc:script location="classpath:/org/springframework/batch/core/schema-h2.sql" />
+	<jdbc:initialize-database data-source="dataSource" ignore-failures="ALL">
+        <jdbc:script location="classpath:/org/springframework/batch/core/schema-h2.sql" />
+        <jdbc:script location="${batch.schema.script}" />
 	</jdbc:initialize-database>
 
 	<batch:job-repository id="jobRepository"
@@ -34,16 +28,20 @@
 	    <property name="jobRegistry" ref="jobRegistry"/>
 	</bean>
 
-	<beans profile="multithreaded">	
-		<import resource="classpath:/META-INF/spring/multithreaded.xml" />
+	<beans profile="default">
+		<import resource="classpath:/META-INF/spring/jobs/mono.xml" />
 	</beans>
 
-	<beans profile="partitioned">	
-		<import resource="classpath:/META-INF/spring/partitioned.xml" />
+	<beans profile="multithreaded">
+		<import resource="classpath:/META-INF/spring/jobs/multithreaded.xml" />
 	</beans>
-	
-	<beans profile="server">	
-		<import resource="server-context.xml"/>
+
+	<beans profile="partitioned">
+		<import resource="classpath:/META-INF/spring/jobs/partitioned.xml" />
 	</beans>
-		
+
+	<beans profile="server">
+		<import resource="../webapp/WEB-INF/server-context.xml"/>
+	</beans>
+
 </beans>
