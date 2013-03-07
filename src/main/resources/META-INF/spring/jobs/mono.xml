@@ -11,7 +11,7 @@
 
 	<description>Example job to get you started. It provides a skeleton for a typical batch application.</description>
  	
-	<batch:job id="multithreadedJob">
+	<batch:job id="job1">
 		<batch:step id="step1">			
 			<batch:tasklet transaction-manager="transactionManager" start-limit="100">
 				<batch:chunk reader="lottoReader" writer="lottoWriter" processor="delayingProcessor" 
@@ -24,9 +24,7 @@
 		</batch:step>
 	</batch:job>
 	
-	<bean id="delayingProcessor" class="batch.demo.job.DelayingProcessor" scope="step">
-		<!--<property name="delay" value="${batch.demo.processor.delay}" />-->
-	</bean>
+	<bean id="delayingProcessor" class="batch.demo.job.DelayingProcessor" scope="step" />
 	
 	<bean id="drawing" class="batch.demo.domain.Drawing" scope="prototype" /> 
 	
