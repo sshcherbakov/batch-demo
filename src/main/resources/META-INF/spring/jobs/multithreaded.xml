@@ -31,7 +31,7 @@
 	
 	<bean id="delayingProcessor" class="batch.demo.job.DelayingProcessor" scope="step" />
 	
- 	<task:executor id="taskExecutor" pool-size="5" />
+ 	<task:executor id="taskExecutor" pool-size="9" />
 	
 	<bean id="drawing" class="batch.demo.domain.Drawing" scope="prototype" /> 
 	
