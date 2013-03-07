@@ -13,7 +13,7 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
 @ContextConfiguration(locations={"/launch-context.xml"})
 @RunWith(SpringJUnit4ClassRunner.class)
-public class ExampleJobConfigurationTests {
+public class JobConfigurationTests {
 	
 	@Autowired
 	private JobLauncher jobLauncher;

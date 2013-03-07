@@ -33,8 +33,14 @@
 	    <property name="jobRegistry" ref="jobRegistry"/>
 	</bean>
 
-	<import resource="classpath:/META-INF/spring/module-context.xml" />
+	<beans profile="multithread">	
+		<import resource="classpath:/META-INF/spring/multithreaded.xml" />
+	</beans>
 
+	<beans profile="partitioned">	
+		<import resource="classpath:/META-INF/spring/partitioned.xml" />
+	</beans>
+	
 	<beans profile="server">	
 		<import resource="server-context.xml"/>
 	</beans>
