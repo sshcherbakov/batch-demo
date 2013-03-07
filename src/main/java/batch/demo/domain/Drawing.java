@@ -1,9 +1,10 @@
 package batch.demo.domain;
 
+import java.io.Serializable;
 import java.math.BigDecimal;
 import java.util.Date;
 
-public class Drawing {
+public class Drawing implements Serializable {
 
 	private int id;
 	private Date date;
