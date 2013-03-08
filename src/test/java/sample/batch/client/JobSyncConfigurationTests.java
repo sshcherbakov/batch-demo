@@ -2,11 +2,17 @@ package sample.batch.client;
 
 import static org.junit.Assert.assertNotNull;
 
+import java.util.Date;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.TimeUnit;
+
+import javax.annotation.Resource;
+
 import junit.framework.Assert;
+
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.batch.core.Job;
-import org.springframework.batch.core.JobParameters;
 import org.springframework.batch.core.JobParametersBuilder;
 import org.springframework.batch.core.launch.JobLauncher;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -18,14 +24,9 @@ import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
-import javax.annotation.Resource;
-import java.util.Date;
-import java.util.concurrent.CountDownLatch;
-import java.util.concurrent.TimeUnit;
-
 @ContextConfiguration(locations={"/META-INF/spring/launch-context.xml"})
 @RunWith(SpringJUnit4ClassRunner.class)
-@ActiveProfiles("simplePartitioning")
+@ActiveProfiles({"simplePartitioning","master"})
 public class JobSyncConfigurationTests {
 	
 	@Autowired

@@ -12,7 +12,7 @@
 			classpath*:/WEB-INF/launch-context.xml
 		</param-value>
 		-->
-		<param-value>/WEB-INF/launch-context.xml</param-value>
+		<param-value>/spring/launch-context.xml</param-value>
 	</context-param>
 
 	<listener>

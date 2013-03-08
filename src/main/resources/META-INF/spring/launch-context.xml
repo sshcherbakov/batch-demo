@@ -48,7 +48,7 @@
 	</beans>
 
 	<beans profile="server">
-		<import resource="../webapp/WEB-INF/server-context.xml"/>
+		<import resource="../WEB-INF/server-context.xml"/>
 	</beans>
 
 </beans>
