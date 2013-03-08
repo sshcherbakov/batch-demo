@@ -35,6 +35,7 @@
     <bean id="partitioner" class="batch.demo.job.FlatFilePartitioner" scope="step"
           p:resource="#{jobParameters['batch.demo.input.file']}" />
 
+
     <task:executor id="taskExecutor" pool-size="5"/>
 
 	<beans profile="master" >

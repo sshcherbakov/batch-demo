@@ -36,7 +36,6 @@
     <bean id="drawing" class="batch.demo.domain.Drawing" scope="prototype"/>
 
     <bean id="lottoReader" class="org.springframework.batch.item.file.FlatFileItemReader" scope="step">
-        <property name="linesToSkip" value="1"/>
         <property name="lineMapper">
             <bean class="org.springframework.batch.item.file.mapping.DefaultLineMapper">
                 <property name="lineTokenizer">

@@ -37,6 +37,8 @@ public class FlatFilePartitioner implements Partitioner {
      */
     public static final String ITEMS_COUNT_KEY = "itemsCount";
 
+	public static final String RESOURCE_KEY = "resource";
+
     /**
      * The common partition prefix name to use.
      */
@@ -117,7 +119,12 @@ public class FlatFilePartitioner implements Partitioner {
         final ExecutionContext executionContext = new ExecutionContext();
         executionContext.putLong(START_AT_KEY, startAt);
         executionContext.putLong(ITEMS_COUNT_KEY, itemsCount);
-        if (logger.isDebugEnabled()) {
+		try {
+			executionContext.putString(RESOURCE_KEY, "file:" + resource.getFile().getPath());
+		} catch (IOException e) {
+			e.printStackTrace();  //To change body of catch statement use File | Settings | File Templates.
+		}
+		if (logger.isDebugEnabled()) {
             logger.debug("Added partition [" + partitionName + "] with [" + executionContext + "]");
         }
         return executionContext;

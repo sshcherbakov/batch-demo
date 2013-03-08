@@ -22,7 +22,7 @@ public class ExecutionTimeMeasurer {
 	@AfterJob
 	public void afterJob(JobExecution jobExecution) {
 		mon.stop();
-		log.info(mon);
+		log.info("Result: "+mon);
 	}
 
 }

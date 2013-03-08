@@ -16,33 +16,16 @@
         <property name="defaultDestinationName" value="output" />
     </bean>
 
-    <bean id="connectionFactory" class="org.apache.activemq.ActiveMQConnectionFactory" >
+    <bean id="connectionFactory" class="org.apache.activemq.ActiveMQConnectionFactory">
         <property name="brokerURL">
-            <!--<value>vm://localhost</value>-->
             <value>tcp://localhost:61616</value>
+            <!--<value>vm://localhost</value>-->
         </property>
     </bean>
-	<!-- connectionFactory depends-on="brokerService"
-    <bean id="brokerService" class="org.apache.activemq.broker.BrokerService" 
-    		init-method="start" destroy-method="stop" >
-        <property name="brokerName" value="localhost" />
-        <property name="useJmx" value="true"/>
-        <property name="transportConnectorURIs">
-            <list>
-                <value>vm://localhost</value>
-            </list>
-        </property>
-        <property name="persistenceAdapter">
-            <bean class="org.apache.activemq.store.memory.MemoryPersistenceAdapter"/>
-          	-->
-            <!-- bean class="org.apache.activemq.store.jdbc.JDBCPersistenceAdapter">
-                <property name="dataSource" ref="dataSource"/>
-                <property name="createTablesOnStartup" value="true" />
-            </bean-->
-            <!--
-        </property>
+
+    <bean id="requestsQueue" class="org.apache.activemq.command.ActiveMQQueue">
+        <constructor-arg value="requestsQueue"/>
     </bean>
-	-->
 
     <int-jms:message-driven-channel-adapter id="jmsIn" destination-name="output" channel="outputChannel"/>
     <int:channel id="outputChannel">
