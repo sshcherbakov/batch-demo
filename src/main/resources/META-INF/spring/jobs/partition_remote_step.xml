@@ -1,0 +1,114 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xmlns:batch="http://www.springframework.org/schema/batch"
+	xmlns:util="http://www.springframework.org/schema/util"
+	xmlns:task="http://www.springframework.org/schema/task"
+	xmlns:p="http://www.springframework.org/schema/p"
+	xmlns:int="http://www.springframework.org/schema/integration"
+	xmlns:int-jms="http://www.springframework.org/schema/integration/jms"
+	xsi:schemaLocation="http://www.springframework.org/schema/integration http://www.springframework.org/schema/integration/spring-integration-2.2.xsd
+		http://www.springframework.org/schema/integration/jms http://www.springframework.org/schema/integration/jms/spring-integration-jms-2.2.xsd
+		http://www.springframework.org/schema/task http://www.springframework.org/schema/task/spring-task-3.2.xsd
+		http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-3.2.xsd
+		http://www.springframework.org/schema/util http://www.springframework.org/schema/util/spring-util-3.2.xsd
+		http://www.springframework.org/schema/batch http://www.springframework.org/schema/batch/spring-batch-2.1.xsd">
+
+    <description>Example job to get you started. It provides a skeleton for a typical batch application.</description>
+
+    <!-- Can't use synchronized or we loose restartibility -->
+
+    <batch:job id="job1">
+        <batch:step id="step">
+            <batch:partition  step="step1" partitioner="partitioner">
+                <batch:handler grid-size="5" task-executor="taskExecutor"/>
+            </batch:partition>
+        </batch:step>
+        <batch:listeners>
+            <batch:listener>
+                <bean class="batch.demo.job.ExecutionTimeMeasurer"/>
+            </batch:listener>
+        </batch:listeners>
+    </batch:job>
+
+
+    <bean id="partitioner" class="batch.demo.job.FlatFilePartitioner" scope="step"
+          p:resource="#{jobParameters['batch.demo.input.file']}" />
+
+
+    <task:executor id="taskExecutor" pool-size="5"/>
+
+	<beans profile="master" >
+
+		<int:gateway id="step1" service-interface="org.springframework.batch.core.Step"
+			default-request-channel="stepInvocations" />
+			
+		<int:channel id="stepInvocations" />
+		
+		<int-jms:outbound-channel-adapter
+			channel="stepInvocations"
+			destination-name="stepReqs" />
+	</beans>
+	
+	<beans profile="slave">
+		
+		<int-jms:message-driven-channel-adapter
+			channel="stepInvocations"
+			destination-name="stepReqs" />
+			
+		<int:channel id="stepInvocations" />
+		
+		<int:service-activator input-channel="stepInvocations"
+			ref="step1" method="execute" />
+
+	    <batch:step id="step1">
+	        <batch:tasklet transaction-manager="transactionManager" start-limit="100">
+	            <batch:chunk reader="lottoReader" writer="lottoWriter" processor="delayingProcessor"
+	                         commit-interval="10" skip-limit="20">
+	                <batch:skippable-exception-classes>
+	                    <batch:include class="org.springframework.batch.item.file.FlatFileParseException"/>
+	                </batch:skippable-exception-classes>
+	            </batch:chunk>
+	        </batch:tasklet>
+	    </batch:step>
+
+	    <bean id="drawing" class="batch.demo.domain.Drawing" scope="prototype"/>
+	
+	    <bean id="delayingProcessor" class="batch.demo.job.DelayingProcessor"/>
+	
+	    <bean id="lottoReader" class="batch.demo.job.MultiThreadedFlatFileItemReader" scope="step">
+	        <property name="lineMapper">
+	            <bean class="org.springframework.batch.item.file.mapping.DefaultLineMapper">
+	                <property name="lineTokenizer">
+	                    <bean class="org.springframework.batch.item.file.transform.FixedLengthTokenizer">
+	                        <property name="columns" value="1-10, 14-30, 35-36, 38-38, 40-46, 48-53, 55-68"/>
+	                        <property name="names" value="date, numbers, zz, s, spiel77, super6, stake"/>
+	                        <property name="strict" value="false"/>
+	                    </bean>
+	                </property>
+	                <property name="fieldSetMapper">
+	                    <bean class="org.springframework.batch.item.file.mapping.BeanWrapperFieldSetMapper">
+	                        <property name="prototypeBeanName" value="drawing"/>
+	                        <property name="customEditors">
+	                            <util:map>
+	                                <entry key="java.util.Date">
+	                                    <bean class="batch.demo.util.DatePropertyEditor"/>
+	                                </entry>
+	                                <entry key="java.math.BigDecimal">
+	                                    <bean class="batch.demo.util.BigDecimalPropertyEditor"/>
+	                                </entry>
+	                            </util:map>
+	                        </property>
+	                    </bean>
+	                </property>
+	            </bean>
+	        </property>
+	        <property name="resource" value="#{jobParameters['batch.demo.input.file']}"/>
+	        <property name="startAt" value="#{stepExecutionContext['startAt']}"/>
+	        <property name="itemsCount" value="#{stepExecutionContext['itemsCount']}"/>
+	    </bean>
+	
+	    <bean id="lottoWriter" class="org.springframework.batch.item.jms.JmsItemWriter" p:jmsTemplate-ref="jmsTemplate"/>
+	</beans>
+
+</beans>

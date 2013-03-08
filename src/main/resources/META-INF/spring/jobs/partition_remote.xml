@@ -54,7 +54,7 @@
     </bean>
 
     <int:channel id="requests">
-        <int:queue/>
+        <int:dispatcher task-executor="taskExecutor"/>
     </int:channel>
     <int:channel id="staging"/>
     <int:channel id="worker"/>
@@ -66,8 +66,8 @@
 
     <int-jms:outbound-gateway request-channel="requests" request-destination="requestsQueue"
                               receive-timeout="30000" reply-channel="staging">
-        <int:poller fixed-rate="200" task-executor="taskExecutor"/>
     </int-jms:outbound-gateway>
+
 
     <int:aggregator ref="partitionHandler" input-channel="staging"/>
 
@@ -79,7 +79,7 @@
 
     <bean id="stepLocator" class="org.springframework.batch.integration.partition.BeanFactoryStepLocator"/>
 
-    <task:executor id="taskExecutor" pool-size="3"/>
+    <task:executor id="taskExecutor" pool-size="6"/>
 
     <bean id="drawing" class="batch.demo.domain.Drawing" scope="prototype"/>
 

@@ -24,8 +24,8 @@ import static org.junit.Assert.assertNotNull;
 
 @ContextConfiguration(locations={"/META-INF/spring/launch-context.xml"})
 @RunWith(SpringJUnit4ClassRunner.class)
-@ActiveProfiles("simplePartitioning")
-public class JobAsyncConfigurationTests {
+@ActiveProfiles({"remoteStep","master"})
+public class JobRemoteStepConfigurationTests {
 	
 	@Autowired
 	private JobLauncher jobLauncher;
@@ -46,24 +46,7 @@ public class JobAsyncConfigurationTests {
 
         final int count = 120;
         final CountDownLatch countDownLatch = new CountDownLatch(count);
-
-        channel.addInterceptor(new ChannelInterceptor() {
-            public Message<?> preSend(Message<?> message, MessageChannel messageChannel) {
-                countDownLatch.countDown();
-                return message;
-            }
-
-            public void postSend(Message<?> message, MessageChannel messageChannel, boolean b) {
-            }
-
-            public boolean preReceive(MessageChannel messageChannel) {
-                return true;
-            }
-
-            public Message<?> postReceive(Message<?> message, MessageChannel messageChannel) {
-                return message;
-            }
-        });
+		channel.addInterceptor(new TestInterceptor(countDownLatch));
 
 		jobLauncher.run(job, new JobParametersBuilder().addString("batch.demo.input.file",
                 "file:" + System.getProperty("user.dir") + "/LOTTO_ab_2012_clean.csv").addDate("d", new Date()).toJobParameters());

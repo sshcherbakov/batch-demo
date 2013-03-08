@@ -44,6 +44,9 @@
         <import resource="classpath:/META-INF/spring/jobs/partition_executor.xml" />
     </beans>
 
+    <beans profile="remoteStep">
+        <import resource="classpath:/META-INF/spring/jobs/partition_remote_step.xml" />
+    </beans>
 
     <beans profile="remotePartitioning">
 		<import resource="classpath:/META-INF/spring/jobs/partition_remote.xml" />

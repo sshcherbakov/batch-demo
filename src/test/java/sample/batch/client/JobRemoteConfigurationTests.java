@@ -41,14 +41,10 @@ public class JobRemoteConfigurationTests {
 	private QueueChannel channel;
 
 	@Test
-	public void testSimpleProperties() throws Exception {
-		assertNotNull(jobLauncher);
-	}
-
-	@Test
 	public void testNothing() throws Exception {
 		System.in.read();
 	}
+/*
 
 	@Test
 	public void testLaunchActiveMQ() throws Exception {
@@ -60,31 +56,15 @@ public class JobRemoteConfigurationTests {
 		brokerService.start();
 		System.in.read();
 	}
+*/
 
 	@Test
 	public void testLaunchJob() throws Exception {
 //		System.in.read();
-
 		final int count = 60;
 		final CountDownLatch countDownLatch = new CountDownLatch(count);
+		channel.addInterceptor(new TestInterceptor(countDownLatch));
 
-		channel.addInterceptor(new ChannelInterceptor() {
-			public Message<?> preSend(Message<?> message, MessageChannel messageChannel) {
-				countDownLatch.countDown();
-				return message;
-			}
-
-			public void postSend(Message<?> message, MessageChannel messageChannel, boolean b) {
-			}
-
-			public boolean preReceive(MessageChannel messageChannel) {
-				return true;
-			}
-
-			public Message<?> postReceive(Message<?> message, MessageChannel messageChannel) {
-				return message;
-			}
-		});
 
 		JobExecution _job = jobLauncher.run(job, new JobParametersBuilder().addString("batch.demo.input.file",
 				"file:" + System.getProperty("user.dir") + "/LOTTO_ab_2012_clean.csv").addDate("d", new Date()).toJobParameters());
