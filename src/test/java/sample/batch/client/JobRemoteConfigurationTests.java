@@ -42,6 +42,7 @@ public class JobRemoteConfigurationTests {
 
 	@Test
 	public void testNothing() throws Exception {
+		System.out.println("Available processors: " + Runtime.getRuntime().availableProcessors());
 		System.in.read();
 	}
 /*

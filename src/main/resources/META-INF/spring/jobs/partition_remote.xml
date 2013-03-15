@@ -50,7 +50,7 @@
             </bean>
         </property>
         <property name="stepName" value="step1"/>
-        <property name="gridSize" value="6"/>
+        <property name="gridSize" value="${batch.demo.grid.size}"/>
     </bean>
 
     <int:channel id="requests">
@@ -62,7 +62,7 @@
     <int:service-activator ref="stepExecutionRequestHandler" input-channel="worker"/>
 
     <int-jms:inbound-gateway request-channel="worker" request-destination="requestsQueue"
-                             concurrent-consumers="3"/>
+                             concurrent-consumers="${batch.demo.grid.size}"/>
 
     <int-jms:outbound-gateway request-channel="requests" request-destination="requestsQueue"
                               receive-timeout="30000" reply-channel="staging">
@@ -79,7 +79,7 @@
 
     <bean id="stepLocator" class="org.springframework.batch.integration.partition.BeanFactoryStepLocator"/>
 
-    <task:executor id="taskExecutor" pool-size="6"/>
+    <task:executor id="taskExecutor" pool-size="${batch.demo.grid.size}"/>
 
     <bean id="drawing" class="batch.demo.domain.Drawing" scope="prototype"/>
 
