@@ -28,7 +28,7 @@ import static org.junit.Assert.assertNotNull;
 
 @ContextConfiguration(locations = {"/META-INF/spring/launch-context.xml"})
 @RunWith(SpringJUnit4ClassRunner.class)
-@ActiveProfiles("remotePartitioning")
+@ActiveProfiles("remotePartitioningAsync")
 public class JobRemoteConfigurationTests {
 
 	@Autowired
@@ -62,7 +62,7 @@ public class JobRemoteConfigurationTests {
 	@Test
 	public void testLaunchJob() throws Exception {
 //		System.in.read();
-		final int count = 60;
+		final int count = 120;
 		final CountDownLatch countDownLatch = new CountDownLatch(count);
 		channel.addInterceptor(new TestInterceptor(countDownLatch));
 

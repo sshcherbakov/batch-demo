@@ -11,31 +11,15 @@
 
     <description>Example job to get you started. It provides a skeleton for a typical batch application.</description>
 
-    <batch:job id="job1" incrementer="simpleIncrementer">
-        <batch:step id="step1">
-            <batch:tasklet transaction-manager="transactionManager" start-limit="100">
-                <batch:chunk reader="lottoReader" writer="lottoWriter" processor="delayingProcessor"
-                             commit-interval="10" skip-limit="20">
-                    <batch:skippable-exception-classes>
-                        <batch:include class="org.springframework.batch.item.file.FlatFileParseException"/>
-                    </batch:skippable-exception-classes>
-                </batch:chunk>
-            </batch:tasklet>
+    <batch:job id="job1" parent="measuringJob">
+        <batch:step id="step1" parent="parentStep">
+			<batch:tasklet>
+            	<batch:chunk reader="lottoReader1" />
+        	</batch:tasklet>        
         </batch:step>
-        <batch:listeners>
-            <batch:listener>
-                <bean class="batch.demo.job.ExecutionTimeMeasurer" />
-            </batch:listener>
-        </batch:listeners>
     </batch:job>
 
-    <bean id="simpleIncrementer" class="batch.demo.job.SimpleIncrementer" />
-
-    <bean id="delayingProcessor" class="batch.demo.job.DelayingProcessor" scope="step"/>
-
-    <bean id="drawing" class="batch.demo.domain.Drawing" scope="prototype"/>
-
-    <bean id="lottoReader" class="org.springframework.batch.item.file.FlatFileItemReader" scope="step">
+    <bean id="lottoReader1" class="batch.demo.job.MultiThreadedFlatFileItemReader" scope="step">
         <property name="lineMapper">
             <bean class="org.springframework.batch.item.file.mapping.DefaultLineMapper">
                 <property name="lineTokenizer">
@@ -64,7 +48,5 @@
         </property>
         <property name="resource" value="#{jobParameters['batch.demo.input.file']}"/>
     </bean>
-
-    <bean id="lottoWriter" class="org.springframework.batch.item.jms.JmsItemWriter" p:jmsTemplate-ref="jmsTemplate"/>
-
+        
 </beans>

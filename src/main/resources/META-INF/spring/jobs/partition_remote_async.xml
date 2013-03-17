@@ -38,23 +38,38 @@
     </bean>
 
     <int:channel id="requests">
-        <int:dispatcher task-executor="taskExecutor"/>
+        <!--<int:dispatcher task-executor="taskExecutor"/>-->
+        <int:interceptors>
+        	<int:ref bean="anonymousChannelExtractor"/>
+        </int:interceptors>
     </int:channel>
+
     <int:channel id="staging"/>
+    
+    <bean id="anonymousChannelExtractor" class="batch.demo.util.AnonymousChannelExtractor">
+    	<property name="delegatingChannel" ref="anonymousChannel" />
+    </bean>
+    <bean id="anonymousChannel" class="batch.demo.util.DelegatingChannel" />
+
+    <int:aggregator ref="partitionHandler" input-channel="staging" output-channel="anonymousChannel"/>
+
+    <int-jms:outbound-channel-adapter channel="requests" destination="requestsQueue" />
+    
+	<bean id="repliesQueue" class="org.apache.activemq.command.ActiveMQQueue">
+        <constructor-arg value="repliesQueue"/>
+    </bean>
+    
+    <int-jms:message-driven-channel-adapter channel="staging" receive-timeout="30000" destination="repliesQueue" 
+    		concurrent-consumers="${batch.demo.grid.size}" />
+
+	<!-- Slave side -->
+
+    <int-jms:inbound-gateway request-channel="worker" request-destination="requestsQueue" default-reply-queue-name="repliesQueue"
+                             concurrent-consumers="${batch.demo.grid.size}"/>
+
     <int:channel id="worker"/>
 
     <int:service-activator ref="stepExecutionRequestHandler" input-channel="worker"/>
-
-    <int-jms:inbound-gateway request-channel="worker" request-destination="requestsQueue"
-                             concurrent-consumers="${batch.demo.grid.size}"/>
-
-    <int-jms:outbound-gateway request-channel="requests" request-destination="requestsQueue"
-                              receive-timeout="30000" reply-channel="staging">
-    </int-jms:outbound-gateway>
-
-
-    <int:aggregator ref="partitionHandler" input-channel="staging"/>
-
 
     <!-- This is the "remote" worker (which in this case is local) -->
     <bean id="stepExecutionRequestHandler"

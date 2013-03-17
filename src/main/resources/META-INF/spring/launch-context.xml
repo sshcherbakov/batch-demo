@@ -14,6 +14,7 @@
 
 	<context:component-scan base-package="batch.demo.job" />
 
+    <import resource="jobs/job_description.xml" />
     <import resource="jms-context.xml" />
 
 	<jdbc:initialize-database data-source="dataSource" ignore-failures="ALL">
@@ -50,6 +51,10 @@
 
     <beans profile="remotePartitioning">
 		<import resource="classpath:/META-INF/spring/jobs/partition_remote.xml" />
+	</beans>
+
+    <beans profile="remotePartitioningAsync">
+		<import resource="classpath:/META-INF/spring/jobs/partition_remote_async.xml" />
 	</beans>
 
 	<beans profile="server">

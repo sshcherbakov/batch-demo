@@ -14,57 +14,12 @@
 
     <!-- Can't use syncronized or we loose restartibility -->
  	
-	<batch:job id="job1">
-		<batch:step id="step1">			
-			<batch:tasklet transaction-manager="transactionManager" start-limit="100" task-executor="taskExecutor" >
-				<batch:chunk reader="lottoReader" writer="lottoWriter" processor="delayingProcessor" 
-					commit-interval="10" skip-limit="20">
-					<batch:skippable-exception-classes>
-						<batch:include class="org.springframework.batch.item.file.FlatFileParseException"/>
-					</batch:skippable-exception-classes>
-				</batch:chunk>
-			</batch:tasklet>
+	<batch:job id="job1" parent="measuringJob">
+		<batch:step id="step1" parent="parentStep">	
+			<batch:tasklet task-executor="taskExecutor" />
 		</batch:step>
-		<batch:listeners>
-			<batch:listener>
-				<bean class="batch.demo.job.ExecutionTimeMeasurer" />
-			</batch:listener>
-		</batch:listeners>
 	</batch:job>
 	
-	<bean id="delayingProcessor" class="batch.demo.job.DelayingProcessor" scope="step" />
-	
- 	<task:executor id="taskExecutor" pool-size="9" />
-	
-	<bean id="drawing" class="batch.demo.domain.Drawing" scope="prototype" /> 
-	
-	<bean id="lottoReader" class="org.springframework.batch.item.file.FlatFileItemReader" scope="step">
-		<property name="linesToSkip" value="1" />
-		<property name="lineMapper">
-			<bean class="org.springframework.batch.item.file.mapping.DefaultLineMapper">
-				<property name="lineTokenizer">
-					<bean class="org.springframework.batch.item.file.transform.FixedLengthTokenizer">
-						<property name="columns" value="1-10, 14-30, 35-36, 38-38, 40-46, 48-53, 55-68"/>
-						<property name="names" value="date, numbers, zz, s, spiel77, super6, stake" />
-						<property name="strict" value="false" />
-					</bean>
-				</property>
-				<property name="fieldSetMapper">
-					<bean class="org.springframework.batch.item.file.mapping.BeanWrapperFieldSetMapper">
-					    <property name="prototypeBeanName" value="drawing" />
-					    <property name="customEditors">
-					    	<util:map>
-					    		<entry key="java.util.Date"><bean class="batch.demo.util.DatePropertyEditor" /></entry>
-					    		<entry key="java.math.BigDecimal"><bean class="batch.demo.util.BigDecimalPropertyEditor" /></entry>
-					    	</util:map>
-					    </property>
-					</bean>
-				</property>
-			</bean>
-		</property>
-		<property name="resource" value="#{jobParameters['batch.demo.input.file']}" />
-	</bean>
-
-    <bean id="lottoWriter" class="org.springframework.batch.item.jms.JmsItemWriter" p:jmsTemplate-ref="jmsTemplate"/>
-
+ 	<task:executor id="taskExecutor" pool-size="${batch.demo.grid.size}" />
+ 	
 </beans>
