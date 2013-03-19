@@ -49,7 +49,7 @@
 
     <task:executor id="taskExecutor" pool-size="${batch.demo.grid.size}"/>
 
-    <bean id="drawing" class="batch.demo.domain.Drawing" scope="prototype"/>
+    <bean id="drawing" class="batch.demo.domain.Draw" scope="prototype"/>
     
     <bean id="lottoReader" class="batch.demo.job.MultiThreadedFlatFileItemReader2" scope="step">
         <property name="lineMapper">

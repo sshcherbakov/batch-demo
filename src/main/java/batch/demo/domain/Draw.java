@@ -4,7 +4,7 @@ import java.io.Serializable;
 import java.math.BigDecimal;
 import java.util.Date;
 
-public class Drawing implements Serializable {
+public class Draw implements Serializable {
 	private static final long serialVersionUID = 1L;
 	
 	private int id;

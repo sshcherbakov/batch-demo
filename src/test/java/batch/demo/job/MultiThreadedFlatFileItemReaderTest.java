@@ -22,7 +22,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
-import batch.demo.domain.Drawing;
+import batch.demo.domain.Draw;
 
 /**
  * @author Sergey Shcherbakov
@@ -70,10 +70,10 @@ public class MultiThreadedFlatFileItemReaderTest {
 		Assert.assertEquals(LINE_COUNT, countingWriter.getItemCount());
 	}
 
-	public static class DummyWriter implements ItemWriter<Drawing> {
+	public static class DummyWriter implements ItemWriter<Draw> {
 		private AtomicLong itemCount = new AtomicLong(0);
 		
-		public void write(List<? extends Drawing> items) throws Exception {
+		public void write(List<? extends Draw> items) throws Exception {
 			itemCount.addAndGet(items.size());
 		}
 		

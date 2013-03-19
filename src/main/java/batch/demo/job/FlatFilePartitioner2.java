@@ -26,8 +26,8 @@ import batch.demo.util.FileUtil;
  * cursor and a number of items to read as defined by the <tt>itemsCount</tt>
  * property.
  *
- * @author Stephane Nicoll
  * @author Sergey Shcherbakov
+ * @author Stephane Nicoll
  */
 public class FlatFilePartitioner2 implements Partitioner {
 
