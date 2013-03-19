@@ -44,14 +44,14 @@
 
     <bean id="delayingProcessor" class="batch.demo.job.DelayingProcessor"/>
 
-    <bean id="partitioner" class="batch.demo.job.FlatFilePartitioner" scope="step"
+    <bean id="partitioner" class="batch.demo.job.FlatFilePartitioner2" scope="step"
           p:resource="#{jobParameters['batch.demo.input.file']}" />
 
     <task:executor id="taskExecutor" pool-size="${batch.demo.grid.size}"/>
 
     <bean id="drawing" class="batch.demo.domain.Drawing" scope="prototype"/>
     
-    <bean id="lottoReader" class="batch.demo.job.MultiThreadedFlatFileItemReader" scope="step">
+    <bean id="lottoReader" class="batch.demo.job.MultiThreadedFlatFileItemReader2" scope="step">
         <property name="lineMapper">
             <bean class="org.springframework.batch.item.file.mapping.DefaultLineMapper">
                 <property name="lineTokenizer">
@@ -79,8 +79,12 @@
             </bean>
         </property>
         <property name="resource" value="#{stepExecutionContext['resource']}"/>
+        <!--
         <property name="startAt" value="#{stepExecutionContext['startAt']}"/>
         <property name="itemsCount" value="#{stepExecutionContext['itemsCount']}"/>
+        -->
+		<property name="maxItemCount" value="#{stepExecutionContext['itemsCount']}" />
+        <property name="startAt" value="#{stepExecutionContext['startAt']}"/>
     </bean>
 
     <bean id="lottoWriter" class="batch.demo.job.MultiThreadedFlatFileItemReaderTest.DummyWriter" />

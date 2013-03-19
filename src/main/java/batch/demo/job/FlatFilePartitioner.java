@@ -11,6 +11,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.util.LinkedHashMap;
 import java.util.Map;
+import org.springframework.util.Assert;
 
 /**
  * Creates a set of partitions for a flat file.
@@ -63,8 +64,6 @@ public class FlatFilePartitioner implements Partitioner {
      * @see #countItems(org.springframework.core.io.Resource)
      */
     public Map<String, ExecutionContext> partition(int gridSize) {
-        final String partitionNumberFormat = "%0" + String.valueOf(gridSize).length() + "d";
-        final Map<String, ExecutionContext> result = new LinkedHashMap<String, ExecutionContext>();
 
         checkResource(this.resource);
         if (logger.isDebugEnabled()) {
@@ -72,6 +71,15 @@ public class FlatFilePartitioner implements Partitioner {
         }
 
         final long lines = countItems(resource);
+        
+        return partition(gridSize, lines);
+    }
+
+	Map<String, ExecutionContext> partition(int gridSize, final long lines) {
+		Assert.isTrue(gridSize > 0, "Grid size must be greater than 0");
+		
+		final String partitionNumberFormat = "%0" + String.valueOf(gridSize).length() + "d";
+        final Map<String, ExecutionContext> result = new LinkedHashMap<String, ExecutionContext>();
         if (lines == 0) {
             logger.info("Empty input file [" + resource.getDescription() + "] no partition will be created.");
             return result;
@@ -92,20 +100,19 @@ public class FlatFilePartitioner implements Partitioner {
                     "grid(s) (" + linesPerFile + " each)");
         }
 
-        for (int i = 0; i < gridSize; i++) {
+        final long remainder = lines % gridSize;
+        long startAt = 0L;
+        for (long i = 0, j = remainder; i < gridSize; i++, j--) {
             final String partitionName = PARTITION_PREFIX + String.format(partitionNumberFormat, i);
 
-            // Start at i * COUNT items (0, COUNT*1, COUNT*2, etc)
-            final long startAt = i * linesPerFile;
-            long itemsCount = linesPerFile;
-            // If this is the last partition, it gets all remaining items
-            if (i == gridSize - 1) {
-                itemsCount = lines - ((gridSize - 1) * linesPerFile);
-            }
+            // spread remaining items evenly between partitions
+            long addition = j > 0 ? 1 : 0;
+            long itemsCount = linesPerFile + addition;
             result.put(partitionName, createExecutionContext(partitionName, startAt, itemsCount));
+            startAt += itemsCount;
         }
         return result;
-    }
+	}
 
     /**
      * Creates a standard {@link ExecutionContext} with the specified parameters.

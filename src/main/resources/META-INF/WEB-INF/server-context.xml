@@ -13,10 +13,6 @@
 		http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-3.2.xsd
 		http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context-3.2.xsd">
 
-	<!--
-	<context:property-placeholder location="classpath:mq.properties" />
-	-->	
-
 	<bean id="jobOperator" class="org.springframework.batch.core.launch.support.SimpleJobOperator" >
 		<property name="jobExplorer">
 			<bean class="org.springframework.batch.core.explore.support.JobExplorerFactoryBean">
@@ -36,13 +32,11 @@
 		</property>
 	</bean>
 
+	<!--	Example of WebSphereMQ integration
+	 
+	<context:property-placeholder location="classpath:mq.properties" />
 	
-
-	<int:channel id="orangeRequests" />
-	<int:service-activator input-channel="orangeRequests" expression="@jobOperator.start('job1', payload)" />
-
-
-	<!--<bean id="jobreqQueue" class="com.ibm.mq.jms.MQQueue">
+	<bean id="jobreqQueue" class="com.ibm.mq.jms.MQQueue">
         <property name="baseQueueManagerName" value="${ibm.mq.queue.manager}" /> 
         <property name="baseQueueName" value="${ibm.mq.jobreq.queue}" />
     </bean> 
@@ -51,7 +45,11 @@
 		channel="jobRequests"
 		connection-factory="jmsConnectionFactory"
 		destination="jobreqQueue"
-		pub-sub-domain="false" />-->
+		pub-sub-domain="false" />
+	-->
+
+	<int:channel id="orangeRequests" />
+	<int:service-activator input-channel="orangeRequests" expression="@jobOperator.start('job1', payload)" />
 		
 	<int:channel id="jobRequests" />
 	<int:service-activator input-channel="jobRequests" ref="jobProcessor" method="launch" />

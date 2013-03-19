@@ -5,7 +5,8 @@ import java.math.BigDecimal;
 import java.util.Date;
 
 public class Drawing implements Serializable {
-
+	private static final long serialVersionUID = 1L;
+	
 	private int id;
 	private Date date;
 	private String numbers;
@@ -62,5 +63,12 @@ public class Drawing implements Serializable {
 	}
 	public void setSuper6(String super6) {
 		this.super6 = super6;
+	}
+	
+	@Override
+	public String toString() {
+		return "Drawing [id=" + id + ", date=" + date + ", numbers=" + numbers
+				+ ", zz=" + zz + ", s=" + s + ", spiel77=" + spiel77
+				+ ", super6=" + super6 + ", stake=" + stake + "]";
 	}
 }

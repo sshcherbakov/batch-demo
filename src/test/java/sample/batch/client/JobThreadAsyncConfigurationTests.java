@@ -24,7 +24,7 @@ import static org.junit.Assert.assertNotNull;
 
 @ContextConfiguration(locations={"/META-INF/spring/launch-context.xml"})
 @RunWith(SpringJUnit4ClassRunner.class)
-@ActiveProfiles("simplePartitioning")
+@ActiveProfiles("partition_executor")
 public class JobThreadAsyncConfigurationTests {
 	
 	@Autowired

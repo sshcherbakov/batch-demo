@@ -41,19 +41,19 @@
 		<import resource="classpath:/META-INF/spring/jobs/multithreaded.xml" />
 	</beans>
 
-    <beans profile="simplePartitioning">
+    <beans profile="partition_executor">
         <import resource="classpath:/META-INF/spring/jobs/partition_executor.xml" />
     </beans>
 
-    <beans profile="remoteStep">
+    <beans profile="partition_remote_step">
         <import resource="classpath:/META-INF/spring/jobs/partition_remote_step.xml" />
     </beans>
 
-    <beans profile="remotePartitioning">
+    <beans profile="partition_remote">
 		<import resource="classpath:/META-INF/spring/jobs/partition_remote.xml" />
 	</beans>
 
-    <beans profile="remotePartitioningAsync">
+    <beans profile="partition_remote_async">
 		<import resource="classpath:/META-INF/spring/jobs/partition_remote_async.xml" />
 	</beans>
 

@@ -24,7 +24,7 @@ import static org.junit.Assert.assertNotNull;
 
 @ContextConfiguration(locations={"/META-INF/spring/launch-context.xml"})
 @RunWith(SpringJUnit4ClassRunner.class)
-@ActiveProfiles({"remoteStep"})
+@ActiveProfiles({"partition_remote_step"})
 public class JobRemoteStepConfigurationTests {
 	
 	@Autowired
