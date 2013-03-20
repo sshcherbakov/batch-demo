@@ -1,0 +1,6 @@
+/target
+/activemq-data
+/FFDC
+**/.DS_Store
+/var
+batchdemo.*
