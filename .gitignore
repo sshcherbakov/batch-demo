@@ -4,3 +4,6 @@
 **/.DS_Store
 /var
 batchdemo.*
+.DS_Store
+.*
+h2*
