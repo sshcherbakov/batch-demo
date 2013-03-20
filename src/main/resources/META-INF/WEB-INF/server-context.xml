@@ -14,11 +14,7 @@
 		http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context-3.2.xsd">
 
 	<bean id="jobOperator" class="org.springframework.batch.core.launch.support.SimpleJobOperator" >
-		<property name="jobExplorer">
-			<bean class="org.springframework.batch.core.explore.support.JobExplorerFactoryBean">
-				<property name="dataSource" ref="dataSource" />
-			</bean>
-		</property>
+		<property name="jobExplorer" ref="jobExplorer" />
 		<property name="jobRepository" ref="jobRepository" />
 	    <property name="jobRegistry" ref="jobRegistry" />
     	<property name="jobLauncher" ref="jobLauncher" />
