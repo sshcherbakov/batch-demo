@@ -1,113 +1,130 @@
+/*
+ * Copyright 2006-2013 the original author or authors.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 package batch.demo.job;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import java.io.BufferedReader;
+import java.io.FileInputStream;
+import java.io.IOException;
+import java.io.InputStreamReader;
+import java.io.UnsupportedEncodingException;
+
 import org.springframework.batch.item.ExecutionContext;
 import org.springframework.batch.item.ItemStreamException;
+import org.springframework.batch.item.file.BufferedReaderFactory;
 import org.springframework.batch.item.file.FlatFileItemReader;
-import org.springframework.batch.item.util.ExecutionContextUserSupport;
+import org.springframework.core.io.Resource;
+import org.springframework.util.Assert;
 import org.springframework.util.ClassUtils;
 
 /**
  * A multi-threaded aware {@link FlatFileItemReader} implementation
- * that uses start and end boundaries to delimit the portion of the
- * file that should be read.
+ * that starts at the offset specified in bytes relative to the file begin
+ * and reads maxItemCount items/lines from the file.
+ * The offset and number of items to read is passed vie ExecutionContext
+ * parameters set by the {@link FlatFilePartitioner}
  * <p/>
  * Reads all the file by default.
- *
- * @author Stephane Nicoll
+ * 
+ * The usage is similar to the {@link FlatFileItemReader}. The <tt>reource</tt>, <tt>maxItemCount</tt>, <tt>startAt</tt>
+ * properties can be set from the <tt>stepExecutionContext</tt> populated by the {@link FlatFilePartitioner}:
+ * <p/>
+ * <pre>
+ * {@code <bean id="partitioner" class="org.springframework.batch.core.partition.support.FlatFilePartitioner" scope="step"
+ *          p:resource="#{jobParameters['input.file']}" /&gt;
+ *          
+ *  &lt;bean id="myReader" class="org.springframework.batch.item.file.MultiThreadedFlatFileItemReader" scope="step"&gt;
+ *  	...
+ *      &lt;property name="resource" value="#{stepExecutionContext['resource']}"/&gt;
+ *      &lt;property name="maxItemCount" value="#{stepExecutionContext['itemsCount']}" /&gt;
+ *      &lt;property name="startAt" value="#{stepExecutionContext['startAt']}"/&gt;
+ *  &lt;/bean&gt;
+ * </pre>
+ * @author Sergey Shcherbakov
  */
 public class MultiThreadedFlatFileItemReader<T> extends FlatFileItemReader<T> {
 
-    // Protected field would alleviate copy/paste here
-    private static final String READ_COUNT = "read.count";
+    /**
+     * The number of bytes the partition should skip on startup.
+     */
+    public static final String START_AT_KEY = "start.at";
 
-    private final Logger logger = LoggerFactory.getLogger(MultiThreadedFlatFileItemReader.class);
-
-    private int startAt = 0;
-    private int itemsCount = Integer.MAX_VALUE;
-
-    // Would be better if the base ecSupport was protected somehow.
-    private final ExecutionContextUserSupport ecSupport;
+    private long startAt = 0;
 
     public MultiThreadedFlatFileItemReader() {
-        this.ecSupport = new ExecutionContextUserSupport();
         setName(ClassUtils.getShortName(MultiThreadedFlatFileItemReader.class));
     }
 
-
-    @Override
-    public void open(ExecutionContext executionContext) throws ItemStreamException {
-        super.open(executionContext);
-
-        /*
-         Since we are dealing with multiple chunk in the same area, let's make
-         sure we will jump to the right item.
-
-         The problem is that the maxItemCount and currentItemCount do not take this
-         notion into account. Say a chunk starts at item #1000 and must read 100
-         elements, the currentItemCount should be 1000 at beginning (ok) but the
-         maxItemCount must be 1100 (and not 100 like it should be)
-        */
-        if (!executionContext.containsKey(ecSupport.getKey(READ_COUNT))) {
-            // We need to jump and this is a fresh start (nothing in the context)
-            if (startAt > 0) {
-                if (logger.isDebugEnabled()) {
-                    logger.debug("Skipping to item [" + startAt + "]");
-                }
-                // Make sure to register the maxItemCount properly
-                final int maxItemCount = startAt + itemsCount;
-                setMaxItemCount(maxItemCount);
-                try {
-                    for (int i = 0; i < startAt; i++) {
-                        read();
-                    }
-                } catch (Exception e) {
-                    throw new ItemStreamException(
-                            "Could not move to stored position on restart", e);
-                }
-                if (logger.isDebugEnabled()) {
-                    logger.debug("Ready to read from [" + getCurrentItemCount() + "] to [" + maxItemCount + "]");
-                }
-            } else {
-                // Fresh start on the first item so let's state the max item count is simply the
-                // itemsCount
-                setMaxItemCount(itemsCount);
-                if (logger.isDebugEnabled()) {
-                    logger.debug("Ready to read from [" + getCurrentItemCount() + "] to [" + itemsCount + "]");
-                }
-            }
-        }
-    }
-
     /**
-     * Sets the item number at which this instance should start reading. Set
+     * Sets the byte offset within the file at which this instance should start reading. Set
      * to 0 by default so that this instance starts at the first item.
      *
-     * @param startAt the number of the item at which this instance should
+     * @param startAt the byte offset at which this instance should
      * start reading
      */
-    public void setStartAt(int startAt) {
+    public void setStartAt(long startAt) {
         this.startAt = startAt;
     }
-
-    /**
-     * Sets the number of items this instance should read.
-     *
-     * @param itemsCount the number of items to read
-     */
-    public void setItemsCount(int itemsCount) {
-        this.itemsCount = itemsCount;
-    }
+    
+    @Override
+	public void open(ExecutionContext executionContext) throws ItemStreamException {
+    	if (isSaveState()) {
+			Assert.notNull(executionContext, "ExecutionContext must not be null");
+    		if (executionContext.containsKey(getExecutionContextUserSupport().getKey(START_AT_KEY))) {
+    			startAt = executionContext.getLong(getExecutionContextUserSupport().getKey(START_AT_KEY));
+    		}
+    	}
+    	// replace the DefaultBufferedReaderFactory with an implementation that seeks to the start before reading
+        setBufferedReaderFactory(new BufferedFileReaderFactory(this.startAt));
+    	super.open(executionContext);
+	}
 
     @Override
-    public void setName(String name) {
-        super.setName(name);
-        // default constructor of the parent calls this before the instance is
-        // actually initialized. With a protected ecSupport, this can go away
-        // altogether.
-        if (ecSupport != null) {
-            ecSupport.setName(name);
-        }
+	public void update(ExecutionContext executionContext) throws ItemStreamException {
+		super.update(executionContext);
+		if (isSaveState()) {
+			executionContext.putLong(getExecutionContextUserSupport().getKey(START_AT_KEY), startAt);
+		}
+	}
+
+    public static class BufferedFileReaderFactory implements BufferedReaderFactory {
+    	
+    	private long skipBytes;
+
+    	public BufferedFileReaderFactory() {
+    		this(0L);
+    	}
+    	
+    	public BufferedFileReaderFactory(long skipBytes) {
+    		this.skipBytes = skipBytes;
+    	}
+    	
+    	/* (non-Javadoc)
+    	 * @see org.springframework.batch.item.file.BufferedReaderFactory#create(org.springframework.core.io.Resource, java.lang.String)
+    	 */
+    	public BufferedReader create(Resource resource, String encoding) throws UnsupportedEncodingException, IOException {
+    		FileInputStream fis = new FileInputStream(resource.getFile());
+    		fis.skip(this.skipBytes);
+    		return new BufferedReader(new InputStreamReader(fis, encoding));
+    	}
+    	
+    	public void setSkipBytes(long skipBytes) {
+    		this.skipBytes = skipBytes;
+    	}
+
     }
+
 }

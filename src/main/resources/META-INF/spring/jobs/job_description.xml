@@ -34,7 +34,7 @@
 
     <bean id="delayingProcessor" class="batch.demo.job.DelayingProcessor"/>
 
-    <bean id="drawing" class="batch.demo.domain.Drawing" scope="prototype"/>
+    <bean id="drawing" class="batch.demo.domain.Draw" scope="prototype"/>
     
     <bean id="lottoReader" class="batch.demo.job.MultiThreadedFlatFileItemReader" scope="step">
         <property name="lineMapper">
@@ -65,7 +65,7 @@
         </property>
         <property name="resource" value="#{stepExecutionContext['resource']}"/>
         <property name="startAt" value="#{stepExecutionContext['startAt']}"/>
-        <property name="itemsCount" value="#{stepExecutionContext['itemsCount']}"/>
+        <property name="maxItemCount" value="#{stepExecutionContext['itemsCount']}"/>
     </bean>
 
     <bean id="lottoWriter" class="org.springframework.batch.item.jms.JmsItemWriter" p:jmsTemplate-ref="jmsTemplate"/>
